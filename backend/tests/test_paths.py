@@ -60,3 +60,25 @@ def test_no_drive_letter_in_code():
         if "AnimalKingdomSystem" in p.read_text(encoding="utf-8")
     ]
     assert offenders == []
+
+
+def test_no_process_wide_tls_bypass():
+    """TLS verification stays on; scripts may only switch it off per run (--no-verify-ssl)."""
+    roots = [paths.REPO_ROOT / "backend" / "app", paths.REPO_ROOT / "data"]
+    offenders = [
+        str(p.relative_to(paths.REPO_ROOT))
+        for root in roots for p in root.rglob("*.py")
+        if "_create_unverified_context" in p.read_text(encoding="utf-8")
+    ]
+    assert offenders == []
+
+
+def test_no_browser_user_agent_in_scripts():
+    """Scripts name themselves honestly instead of posing as a browser."""
+    roots = [paths.REPO_ROOT / "backend" / "app", paths.REPO_ROOT / "data"]
+    offenders = [
+        str(p.relative_to(paths.REPO_ROOT))
+        for root in roots for p in root.rglob("*.py")
+        if "Mozilla/5.0" in p.read_text(encoding="utf-8")
+    ]
+    assert offenders == []

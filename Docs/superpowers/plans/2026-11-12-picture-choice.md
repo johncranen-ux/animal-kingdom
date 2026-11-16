@@ -33,7 +33,7 @@
 - Stricter DuckDuckGo/Commons checks against "X eating Y" photos.
 
 ## Global Constraints
-- Branch `increment-32-picture-choice` off `master` (fddea4a), worktree `D:\Claudecode\projects\Animal Kingdom-wt25`.
+- Branch `increment-32-picture-choice` off `master` (fddea4a), worktree `..\Animal Kingdom-wt25`.
 - E2E on a private port (8036), never 8010; don't restart the user's backend.
 - Commit per task; merge only on approval.
 

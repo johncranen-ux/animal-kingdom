@@ -6,7 +6,7 @@ An offline-first app cataloguing ~1.78 million animal species with an interactiv
 
 ## What you need before starting
 
-Everything is already installed on this machine. This section is a checklist, not an installation guide.
+This section is a checklist, not an installation guide; the [README](../README.md#building-and-running) covers installing and building.
 
 | Component | Location / command to verify |
 |---|---|
@@ -56,7 +56,7 @@ Ollama runs as a background Windows application from the AMD AI Bundle. If it is
 Open a terminal, navigate to the project, and start the FastAPI server:
 
 ```bash
-cd "D:\Claudecode\projects\Animal Kingdom\backend"
+cd backend
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -211,7 +211,7 @@ taskkill /F /PID <PID shown above>
 ```
 
 ### Backend fails to start — database not found
-Make sure the E: drive (NVMe) is connected. The database lives at:
+Make sure the data folder (`AK_DATA_DIR`) is reachable, for example that its drive is connected. The database lives at:
 ```
 <data dir>\species.db
 ```
@@ -224,7 +224,7 @@ The database currently has taxonomy data for all species. Two enrichment scripts
 
 ### Wikipedia enrichment *(no account needed)*
 ```bash
-cd "D:\Claudecode\projects\Animal Kingdom"
+cd <project folder>
 python data/enrich_wikipedia.py --only-with-common-names --animals-only --batch-size 200000
 ```
 Takes about 1.3 seconds per species (a half-second pause plus Wikipedia's reply), so roughly 40–45 hours for the ~125,000 animals with a common name and no description, spread over several sessions. Stop it any time and run the same command again to resume; it checkpoints every 1,000 species. A Wikipedia thumbnail only fills a species that has no image yet. Afterwards rebuild the search index (*Build embeddings* below).

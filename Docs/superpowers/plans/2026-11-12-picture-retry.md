@@ -44,7 +44,7 @@ The two user questions are answered at the end; everything else is my call.
 
 ## Global Constraints
 
-- Branch `increment-31-picture-retry` off `master` (after the Increment 30 merge), in worktree `D:\Claudecode\projects\Animal Kingdom-wt25`. It needs the `current_name` from Increment 30.
+- Branch `increment-31-picture-retry` off `master` (after the Increment 30 merge), in worktree `..\Animal Kingdom-wt25`. It needs the `current_name` from Increment 30.
 - Image requests use the existing `_IMG_USER_AGENT`; no personal details go in any request.
 - E2E runs on a private port (for example `AK_PORT=8035`), never 8010. Don't restart the user's backend.
 - The frontend API base is the page origin; no hardcoded ports.

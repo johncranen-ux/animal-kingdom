@@ -13,7 +13,12 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
 
-from app import database, vector_db
+# The app runs offline; this script may download the embedding model on its
+# first run (~90 MB), so it turns Hugging Face online unless told otherwise.
+os.environ.setdefault("HF_HUB_OFFLINE", "0")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "0")
+
+from app import database, vector_db  # noqa: E402
 
 
 def _existing_ids(col) -> set[str]:

@@ -1,12 +1,8 @@
 """ChromaDB embedding handlers for semantic species search."""
 
 import os
-import ssl
 
 # HF offline flags are set in app/__init__.py so they apply before any import.
-# SSL cert chain is broken on this machine — disable verification for the process.
-ssl._create_default_https_context = ssl._create_unverified_context  # noqa: SIM117
-
 import chromadb
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 

@@ -20,6 +20,8 @@ Search by scientific, common or old name, and the tree opens along the path to t
 
 ![The species panel for the snow leopard](Docs/images/species-panel.png)
 
+<sub>Snow leopard photo in the screenshots: [Irbis4.JPG](https://commons.wikimedia.org/wiki/File:Irbis4.JPG) by Irbis1983, public domain, via Wikimedia Commons.</sub>
+
 ### A local chatbot that cites its source
 
 A LangGraph agent on a local Ollama model (`llama3.1:8b`) answers questions by calling database tools. Some example questions:
@@ -59,13 +61,13 @@ The code is MIT-licensed (see [LICENSE](LICENSE)). **The data is not part of thi
 | **GBIF.org** (2026) GBIF Occurrence Download https://doi.org/10.15468/dl.rujp2t | Countries with wild records per species | CC BY 4.0 (records CC0 / CC BY) |
 | **IUCN 2026.** The IUCN Red List of Threatened Species. https://www.iucnredlist.org (API v4) | Red List status, population trend, habitat, elevation | [IUCN Terms of Use](https://www.iucnredlist.org/terms/terms-of-use): non-commercial use, attribution required, free API token |
 | **AnAge**: Tacutu, R. et al. (2018) *Human Ageing Genomic Resources: new and updated databases.* Nucleic Acids Research 46(D1): D1083–D1090 | Maximum lifespan, body mass, metabolic rate | Free for research and educational use |
-| **Wikipedia** (English) via the REST API | Species summaries (88,500 species), some pictures | CC BY-SA 4.0 |
+| **Wikipedia** (English) via the REST API | Species summaries (88,500 species), some pictures; the hover texts of the tree were checked against its articles | CC BY-SA 4.0 |
 | **Wikidata** | Traits and old-name (synonym) links, looked up on demand | CC0 |
 | **Wikimedia Commons**, **iNaturalist**, GBIF occurrence media | Species pictures | Per image; the attribution and licence are stored with each picture and shown in the panel |
 | **Natural Earth** 1:50m | Countries, continents, islands and seas for the chat's "animals of a place" | Public domain |
 | **Global Names Verifier** (with WoRMS, ITIS, IRMNG, NCBI and others) | Independent checks of orders and families that COL leaves blank | Per source |
 
-DuckDuckGo image search is the last fallback for a missing picture. Its results carry the source page as attribution.
+DuckDuckGo image search is the last fallback for a missing picture, through the unofficial [`ddgs`](https://pypi.org/project/ddgs/) library (DuckDuckGo has no public image API, so it may break without notice). Its results carry the source page as attribution.
 
 ## Building and running
 
@@ -123,7 +125,7 @@ The database is built once by the scripts in [`data/`](data/). Every script read
 2. **Tidy-ups after a build.** `backfill_extinct.py --rollup-only` and `fix_common_names.py`.
 3. **Enrichment.** `enrich_iucn.py` (needs the token), `enrich_anage.py`, `enrich_wikipedia.py --animals-only` (about 1.3 s per species, days for all of them), `enrich_images.py`.
 4. **Places.** `build_places.py` (Natural Earth GeoJSON in `<data dir>\natural_earth`). Then request the two GBIF occurrence downloads with `gbif_download.py ranges submit` and `gbif_download.py countries submit` (a free GBIF account; GBIF takes a few hours). Fetch and unzip them, then run `import_gbif_ranges.py --csv …` and `import_gbif_countries.py --csv …`.
-5. **Semantic index.** `build_embeddings.py` embeds the Wikipedia summaries into ChromaDB.
+5. **Semantic index.** `build_embeddings.py` embeds the Wikipedia summaries into ChromaDB. Its first run downloads the `all-MiniLM-L6-v2` model from Hugging Face (~90 MB); after that the app loads it offline.
 
 The app works with a partly enriched database: missing traits and pictures are fetched on demand when you open a species.
 

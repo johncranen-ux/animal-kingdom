@@ -35,10 +35,10 @@ from app.paths import data_path  # noqa: E402
 from app import database
 
 IUCN_BASE  = "https://api.iucnredlist.org/api/v4"
+# An honest client name; the API answers 403 to Python's default User-Agent.
 USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/125.0.0.0 Safari/537.36"
+    "AnimalKingdomApp/1.0 (educational offline app; contact "
+    + os.environ.get("AK_CONTACT_EMAIL", "add-your-email@example.com") + ")"
 )
 REQUEST_DELAY   = 0.5   # seconds between calls
 PAGE_SIZE       = 100   # items per page (fixed by API)

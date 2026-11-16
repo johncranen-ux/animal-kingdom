@@ -67,7 +67,7 @@ Port 8000 is often taken on this machine (a Postgres MCP server), hence the 8010
 ### Directory Layout
 
 ```
-D:\Claudecode\projects\Animal Kingdom\
+animal-kingdom/
 ├── README.md
 ├── manage.py                # Service manager behind start.bat / stop.bat
 ├── Docs/
