@@ -31,11 +31,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
+from app.paths import data_path  # noqa: E402
 sys.path.insert(0, str(Path(__file__).parent))
 from app import database, trait_utils           # noqa: E402
 from backfill_extinct import taxon_path          # noqa: E402  (same path rule as the import)
 
-DATA_DIR    = Path("E:/AnimalKingdomSystem")
+DATA_DIR    = data_path()
 BACKBONE    = DATA_DIR / "gbif/backbone/Taxon.tsv"
 CANDIDATES  = DATA_DIR / "extinct_batch_candidates.tsv"
 CHECKPOINT  = DATA_DIR / "extinct_batch_done.txt"

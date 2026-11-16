@@ -10,8 +10,8 @@ Everything is already installed on this machine. This section is a checklist, no
 
 | Component | Location / command to verify |
 |---|---|
-| Python 3.12 venv | `D:\Claudecode\projects\Animal Kingdom\.venv` |
-| Species database | `E:\AnimalKingdomSystem\species.db` (~5.9M rows) |
+| Python 3.12 venv | `.venv` in the project root |
+| Species database | `<data dir>\species.db` (~5.9M rows); the data folder is `AK_DATA_DIR` in `.env`, default `local_data\` |
 | Ollama (AMD AI Bundle) | Running as a background app — check system tray |
 | LLM model | `ollama list` → should show `llama3.1:8b` |
 
@@ -213,7 +213,7 @@ taskkill /F /PID <PID shown above>
 ### Backend fails to start — database not found
 Make sure the E: drive (NVMe) is connected. The database lives at:
 ```
-E:\AnimalKingdomSystem\species.db
+<data dir>\species.db
 ```
 
 ---
@@ -254,7 +254,7 @@ python data/batch_extinct_gbif.py                # stop any time; re-run to resu
 The database keeps one row per name. Imports before 2026-11-04 kept the first backbone row of each name, so an outdated synonym could stand in for an accepted animal: "Panthera" was a moth synonym, and selecting it jumped to *Pantherodes*. This replaces such rows with the accepted animal (highest rank wins for homonyms) and backs up the originals first:
 ```bash
 python data/fix_name_collisions.py --dry-run   # counts only
-python data/fix_name_collisions.py             # originals -> E:\AnimalKingdomSystem
+python data/fix_name_collisions.py             # originals -> <data dir>
 ame_collisions_backup.jsonl
 python data/backfill_extinct.py                # re-derive extinct flags for the replaced rows
 ```
@@ -264,17 +264,17 @@ Safe to re-run; a fresh import no longer needs it.
 The tree labels a group with its first stored common name, which could be wrong: Mammalia showed as "Herbivore" and Myxini (hagfish) as "fish". This applies a hand-reviewed list of corrections to phyla, classes and orders. Re-run it after a fresh import:
 ```bash
 python data/fix_common_names.py --dry-run   # shows each change, writes nothing
-python data/fix_common_names.py             # old values go to E:/AnimalKingdomSystem/common_names_backup.jsonl
+python data/fix_common_names.py             # old values go to <data dir>/common_names_backup.jsonl
 ```
 Safe to re-run.
 
 ### GBIF ranges *(offline, ~15 min; re-run after a Catalogue of Life build)*
-The species panel's **Range** row and the chat's north/south rankings come from one GBIF download of wild observations (2.59 billion records, DOI 10.15468/dl.5v8cu8), kept in `E:\AnimalKingdomSystem\gbif_ranges\`. A range that crosses the 180° line (polar bear) shows its latitudes only.
+The species panel's **Range** row and the chat's north/south rankings come from one GBIF download of wild observations (2.59 billion records, DOI 10.15468/dl.5v8cu8), kept in `<data dir>\gbif_ranges\`. A range that crosses the 180° line (polar bear) shows its latitudes only.
 ```bash
 python data/import_gbif_ranges.py --dry-run   # counts only
-python data/import_gbif_ranges.py             # old ranges -> E:/AnimalKingdomSystem/gbif_ranges_backup.jsonl
+python data/import_gbif_ranges.py             # old ranges -> <data dir>/gbif_ranges_backup.jsonl
 ```
-Safe to re-run. A fresh download needs your GBIF login in `E:\AnimalKingdomSystem\gbif_credentials.json` and `gbif_ranges\gbif_sql_download.py submit` (about an hour on GBIF's side).
+Safe to re-run. A fresh download needs a GBIF login (`GBIF_USER` / `GBIF_PASSWORD`, or `<data dir>\gbif_credentials.json`) and `python data/gbif_download.py ranges submit` (about an hour on GBIF's side); `status` and `fetch` follow the same pattern.
 
 ### Build embeddings *(run after Wikipedia enrichment)*
 Once abstracts are populated, build the semantic search index:

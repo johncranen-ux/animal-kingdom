@@ -10,9 +10,9 @@ ssl._create_default_https_context = ssl._create_unverified_context  # noqa: SIM1
 import chromadb
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 
-CHROMA_PATH = os.environ.get(
-    "CHROMA_DB_PATH", r"E:\AnimalKingdomSystem\chroma_db"
-)
+from app.paths import data_path
+
+CHROMA_PATH = os.environ.get("CHROMA_DB_PATH") or str(data_path("chroma_db"))
 COLLECTION_NAME = "species_abstracts"
 EMBED_MODEL = "all-MiniLM-L6-v2"
 

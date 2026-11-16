@@ -4,7 +4,7 @@ carrying across what the current species.db has collected. Writes a new file; re
 target that exists, so species.db is never touched.
 
 Usage:
-    python data/build_col_db.py [--target E:/AnimalKingdomSystem/col/species_col.db]
+    python data/build_col_db.py [--target <data dir>/col/species_col.db]
 
 Levels: kingdom, phylum, class, order, family, genus, species and below. Where one of
 those is missing, the lowest level COL has in that gap stands in for it, under its real
@@ -31,12 +31,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from compare_col import match_name  # noqa: E402
 from import_gbif import row_score  # noqa: E402  (also puts backend/ on sys.path)
+from app.paths import data_path  # noqa: E402
 from app import database  # noqa: E402
 
-COL_DB = "E:/AnimalKingdomSystem/col/col_xr.db"
-OLD_DB = "E:/AnimalKingdomSystem/species_gbif_backup.db"  # species.db is itself a COL build since the switch
-TARGET = "E:/AnimalKingdomSystem/col/species_col.db"
-VERDICTS = "E:/AnimalKingdomSystem/col/verification/verdicts.tsv"
+COL_DB = str(data_path("col", "col_xr.db"))
+OLD_DB = str(data_path("species_gbif_backup.db"))  # species.db is itself a COL build since the switch
+TARGET = str(data_path("col", "species_col.db"))
+VERDICTS = str(data_path("col", "verification", "verdicts.tsv"))
 
 Fixes = namedtuple("Fixes", "family order")
 

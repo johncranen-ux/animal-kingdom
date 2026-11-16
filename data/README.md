@@ -1,6 +1,6 @@
 # Data pipeline
 
-One-off scripts that build and maintain the SQLite database (`SPECIES_DB_PATH`) and the ChromaDB store. Most of them resume from a checkpoint. Before running anything that calls a web API, set `AK_CONTACT_EMAIL` to your own address (see the main [README](../README.md#configure)).
+One-off scripts that build and maintain the SQLite database and the ChromaDB store. All of them read and write inside the data folder (`AK_DATA_DIR`, default `local_data/`; see `backend/app/paths.py`). Most of them resume from a checkpoint. Before running anything that calls a web API, set `AK_CONTACT_EMAIL` to your own address (see the main [README](../README.md#configure)).
 
 | Script | Purpose |
 |---|---|
@@ -17,6 +17,7 @@ One-off scripts that build and maintain the SQLite database (`SPECIES_DB_PATH`) 
 | `enrich_wikipedia.py` | Wikipedia summaries and thumbnails |
 | `enrich_images.py` | Pictures from iNaturalist and other sources |
 | `enrich_gbif_occurrences.py` | Ranges from a sample of GBIF occurrences (superseded by `import_gbif_ranges.py`) |
+| `gbif_download.py` | Request, check and fetch the two GBIF SQL occurrence downloads (`ranges`, `countries`); needs a free GBIF account |
 | `import_gbif_ranges.py` | Ranges from a GBIF SQL occurrence download |
 | `import_gbif_countries.py` | Wild records per species per country from a GBIF SQL download |
 | `build_places.py` | Natural Earth places for the chat's "animals of a place" |

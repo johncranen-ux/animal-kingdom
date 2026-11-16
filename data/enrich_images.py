@@ -29,10 +29,11 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
+from app.paths import data_path  # noqa: E402
 from app import database
 
 INAT_API      = "https://api.inaturalist.org/v1/taxa"
-CHECKPOINT    = r"E:\AnimalKingdomSystem\images_checkpoint.json"
+CHECKPOINT    = str(data_path("images_checkpoint.json"))
 REQUEST_DELAY = 0.7   # iNaturalist allows 100 req/min unauthenticated; 0.7 s ≈ 86/min
 USER_AGENT    = (
     "AnimalKingdomApp/1.0 (educational offline project; contact "

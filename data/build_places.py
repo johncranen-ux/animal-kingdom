@@ -12,7 +12,7 @@ columns), so the chat tests a species' range box against it with a lookup and no
 geometry. A cell belongs to a place if its centre lies inside a polygon or an edge of
 the polygon passes through it. Holes (lakes) are ignored.
 
-Usage (from project root; downloads kept in E:\\AnimalKingdomSystem\\natural_earth):
+Usage (from project root; downloads kept in <data dir>/natural_earth):
     .venv\\Scripts\\python data\\build_places.py [--source DIR] [--out FILE]
 """
 
@@ -25,9 +25,12 @@ from pathlib import Path
 
 import numpy as np
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "backend"))
+from app.paths import data_path  # noqa: E402
+
 RES = 0.5                       # degrees per cell
 N_ROWS, N_COLS = int(180 / RES), int(360 / RES)
-_DEFAULT_SOURCE = Path(r"E:\AnimalKingdomSystem\natural_earth")
+_DEFAULT_SOURCE = data_path("natural_earth")
 _DEFAULT_OUT = Path(__file__).resolve().parent.parent / "backend" / "app" / "data" / "places.json"
 
 # Extra names people use; keys are place names as built here

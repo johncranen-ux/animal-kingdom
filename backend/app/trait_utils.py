@@ -17,9 +17,9 @@ import ssl
 import urllib.error
 import urllib.parse
 import urllib.request
-from pathlib import Path
 
 from app import database, geo_range
+from app.paths import data_path, dotenv_value
 from app.database import TraitValue, parse_common_names, parse_trait_sources
 
 log = logging.getLogger(__name__)
@@ -194,8 +194,7 @@ def run_name_stage(row: dict) -> tuple[dict[str, TraitValue], bool]:
 # ── IUCN Red List ─────────────────────────────────────────────────────────────
 
 _IUCN_API = "https://api.iucnredlist.org/api/v4"
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-_IUCN_CHECKPOINT = os.environ.get("IUCN_CHECKPOINT_PATH", r"E:\AnimalKingdomSystem\iucn_checkpoint.json")
+_IUCN_CHECKPOINT = os.environ.get("IUCN_CHECKPOINT_PATH") or str(data_path("iucn_checkpoint.json"))
 _IUCN_TREND_MAP = {"0": "Increasing", "1": "Decreasing", "2": "Stable", "3": "Unknown"}
 _checkpoint_matched: dict | None = None
 
@@ -204,13 +203,7 @@ def _iucn_token() -> str | None:
     token = os.environ.get("IUCN_API_TOKEN")
     if token:
         return token.strip()
-    env_path = _REPO_ROOT / ".env"
-    if env_path.exists():
-        for line in env_path.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if line.startswith("IUCN_API_TOKEN="):
-                return line.split("=", 1)[1].strip().strip('"').strip("'") or None
-    return None
+    return dotenv_value("IUCN_API_TOKEN")
 
 
 def _checkpoint_assessment_id(name: str) -> int | None:

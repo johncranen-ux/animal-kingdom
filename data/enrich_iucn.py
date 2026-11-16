@@ -31,6 +31,7 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
+from app.paths import data_path  # noqa: E402
 from app import database
 
 IUCN_BASE  = "https://api.iucnredlist.org/api/v4"
@@ -41,7 +42,7 @@ USER_AGENT = (
 )
 REQUEST_DELAY   = 0.5   # seconds between calls
 PAGE_SIZE       = 100   # items per page (fixed by API)
-CHECKPOINT_FILE = r"E:\AnimalKingdomSystem\iucn_checkpoint.json"
+CHECKPOINT_FILE = str(data_path("iucn_checkpoint.json"))
 
 # All current IUCN Red List category codes
 CATEGORIES = ["EX", "EW", "CR", "EN", "VU", "NT", "LC", "DD"]

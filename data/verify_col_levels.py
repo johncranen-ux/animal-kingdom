@@ -1,7 +1,7 @@
 """
 Check the family or order GBIF gives for groups COL leaves unplaced, against taxonomic
 databases other than COL and GBIF (through Global Names Verifier). Read-only for the
-databases; results go to E:/AnimalKingdomSystem/col/verification/. Resumable.
+databases; results go to <data dir>/col/verification/. Resumable.
 
 A family is checked on the genus, an order on the family (or on the genus if COL has no
 family either), because that link belongs to the group, not to one species. A value is
@@ -23,11 +23,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 import compare_col as cc  # noqa: E402
+from app.paths import data_path  # noqa: E402
 
 VERIFIER_URL = "https://verifier.globalnames.org/api/v1/verifications"
 BATCH_SIZE = 500
-OUT_DIR = Path("E:/AnimalKingdomSystem/col/verification")
-COL_DB = "E:/AnimalKingdomSystem/col/col_xr.db"
+OUT_DIR = data_path("col", "verification")
+COL_DB = str(data_path("col", "col_xr.db"))
 
 # Excluded on purpose: COL itself; GBIF, EOL and Open Tree of Life, which are built from
 # GBIF's or COL's data, so agreeing with GBIF would prove nothing.

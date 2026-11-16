@@ -3,7 +3,7 @@ Import geographic ranges from a GBIF SQL download into geo_bounding_box.
 
 The download (one row per GBIF species) holds the 0.5% and 99.5% percentiles of
 the latitude and longitude of its wild records, so zoo and stray records don't
-stretch a range. Submitted with E:/AnimalKingdomSystem/gbif_ranges/gbif_sql_download.py
+stretch a range. Submitted with data/gbif_download.py (ranges query)
 on 2026-11-11 (DOI 10.15468/dl.5v8cu8, ~1 h on GBIF's side).
 
 Rules (geo_range.py): at least 10 wild records; a longitude span over 340° crosses
@@ -32,10 +32,11 @@ from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
+from app.paths import data_path  # noqa: E402
 from app import database, geo_range  # noqa: E402
 
-DEFAULT_CSV = "E:/AnimalKingdomSystem/gbif_ranges/0001920-261110092616502.csv"
-DEFAULT_BACKUP = "E:/AnimalKingdomSystem/gbif_ranges_backup.jsonl"
+DEFAULT_CSV = str(data_path("gbif_ranges", "0001920-261110092616502.csv"))
+DEFAULT_BACKUP = str(data_path("gbif_ranges_backup.jsonl"))
 DEFAULT_DOI = "10.15468/dl.5v8cu8"
 _EDGES = ("lat_min", "lat_max", "lon_min", "lon_max")
 

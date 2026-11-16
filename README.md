@@ -95,25 +95,29 @@ cd frontend && npm install  # Vitest
 
 ### Configure
 
+Settings come from environment variables or a `.env` file in the project root (`KEY=value` lines).
+
 | Variable | Default | Purpose |
 |---|---|---|
-| `SPECIES_DB_PATH` | `E:\AnimalKingdomSystem\species.db` | The SQLite database |
-| `CHROMA_DB_PATH` | `E:\AnimalKingdomSystem\chroma_db` | The vector store |
+| `AK_DATA_DIR` | `local_data\` in the project | **The one data folder**: database, vector store, downloads, checkpoints and backups. Point it at a roomy drive, e.g. `AK_DATA_DIR=D:\AnimalKingdomData` in `.env`. |
+| `SPECIES_DB_PATH` | `<data dir>\species.db` | Overrides just the SQLite database |
+| `CHROMA_DB_PATH` | `<data dir>\chroma_db` | Overrides just the vector store |
 | `AK_PORT` | `8000` (`8010` in `start.bat`) | Backend port |
 | `AK_CHAT_MODEL` | `llama3.1:8b` | Any Ollama chat model with tool support |
 | `IUCN_API_TOKEN` | none | Free token from https://api.iucnredlist.org; also read from a `.env` file in the project root |
 | `AK_CONTACT_EMAIL` | `add-your-email@example.com` | **Set this to your own address before running the data scripts.** Wikimedia, GBIF and AnAge ask API clients for a contact in the User-Agent and may throttle or block anonymous ones. |
+| `GBIF_USER`, `GBIF_PASSWORD` | none | A free GBIF account, only for requesting the two occurrence downloads (or `gbif_credentials.json` in the data folder) |
 
-`.env` is git-ignored. Never commit your token or your address.
+`.env` and `local_data/` are git-ignored. Never commit your token, password or address.
 
 ### Build the database
 
-The database is built once by the scripts in [`data/`](data/). Most of them resume from a checkpoint if interrupted. Several scripts still have the author's data folder `E:\AnimalKingdomSystem\` as a constant at the top; change it if you use another location. The order in which the database was built:
+The database is built once by the scripts in [`data/`](data/). Every script reads and writes inside the data folder (`AK_DATA_DIR`), and most of them resume from a checkpoint if interrupted. The order in which the database was built:
 
 1. **Taxonomy.** `import_gbif.py --download` imports the GBIF Backbone. `import_col.py` loads the Catalogue of Life ColDP archive into its own database. `verify_col_levels.py` checks blank orders and families against independent sources (resumable, several hours). `build_col_db.py` builds the final `species` table, carrying over what the GBIF database collected.
 2. **Tidy-ups after a build.** `backfill_extinct.py --rollup-only` and `fix_common_names.py`.
 3. **Enrichment.** `enrich_iucn.py` (needs the token), `enrich_anage.py`, `enrich_wikipedia.py --animals-only` (about 1.3 s per species, days for all of them), `enrich_images.py`.
-4. **Places.** `build_places.py` (Natural Earth GeoJSON). Then `import_gbif_ranges.py` and `import_gbif_countries.py`, which read GBIF SQL downloads you request with a free GBIF account.
+4. **Places.** `build_places.py` (Natural Earth GeoJSON in `<data dir>\natural_earth`). Then request the two GBIF occurrence downloads with `gbif_download.py ranges submit` and `gbif_download.py countries submit` (a free GBIF account; GBIF takes a few hours). Fetch and unzip them, then run `import_gbif_ranges.py --csv …` and `import_gbif_countries.py --csv …`.
 5. **Semantic index.** `build_embeddings.py` embeds the Wikipedia summaries into ChromaDB.
 
 The app works with a partly enriched database: missing traits and pictures are fetched on demand when you open a species.

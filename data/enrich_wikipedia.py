@@ -13,7 +13,7 @@ Stop it any time (Ctrl+C or end the process) and run the same command again to
 resume: species that got an abstract drop out of the selection.
 A Wikipedia thumbnail only fills a species that has no image yet.
 
-Progress is checkpointed to E:/AnimalKingdomSystem/wikipedia_checkpoint.json.
+Progress is checkpointed to <data dir>/wikipedia_checkpoint.json.
 The checkpoint records only confirmed successes and confirmed 404s.
 Transient failures (429, timeouts) are NOT checkpointed, so they are retried
 on the next run.
@@ -31,10 +31,11 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
+from app.paths import data_path  # noqa: E402
 from app import database
 
 WIKIPEDIA_API = "https://en.wikipedia.org/api/rest_v1/page/summary"
-CHECKPOINT_FILE = r"E:\AnimalKingdomSystem\wikipedia_checkpoint.json"
+CHECKPOINT_FILE = str(data_path("wikipedia_checkpoint.json"))
 REQUEST_DELAY = 0.5   # ~2 req/s — stays well under Wikipedia's 200 req/s limit
 RETRY_DELAY   = 60    # seconds to wait after a 429
 MAX_RETRIES   = 3

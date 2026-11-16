@@ -4,7 +4,7 @@ trial comparison with the GBIF-based tree. Never touches species.db: a target
 that already exists is refused.
 
 Usage:
-    python data/import_col.py E:/AnimalKingdomSystem/col/col_base_coldp.zip E:/AnimalKingdomSystem/col/col_base.db
+    python data/import_col.py <data dir>/col/col_xr_full_coldp.zip <data dir>/col/col_xr.db
 
 The database mirrors the source instead of the app's schema:
 - one row per name usage, so homonyms and synonyms keep separate rows;

@@ -15,7 +15,7 @@ Usage:
     python data/enrich_gbif_occurrences.py --all-accepted --limit 50000
     python data/enrich_gbif_occurrences.py --no-verify-ssl --delay 1.0
 
-Progress is checkpointed to E:/AnimalKingdomSystem/gbif_bbox_checkpoint.json.
+Progress is checkpointed to <data dir>/gbif_bbox_checkpoint.json.
 """
 
 import argparse
@@ -29,11 +29,12 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
+from app.paths import data_path  # noqa: E402
 from app import database
 
 GBIF_MATCH      = "https://api.gbif.org/v1/species/match"
 GBIF_OCCURRENCE = "https://api.gbif.org/v1/occurrence/search"
-CHECKPOINT_FILE = r"E:\AnimalKingdomSystem\gbif_bbox_checkpoint.json"
+CHECKPOINT_FILE = str(data_path("gbif_bbox_checkpoint.json"))
 REQUEST_DELAY   = 0.5    # 0.5 s per call → ≤ 2 req/s, well within GBIF fair-use
 OCC_LIMIT       = 300    # occurrence records to sample per species
 USER_AGENT      = (

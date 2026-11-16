@@ -1,6 +1,6 @@
 # Species Database Schema
 
-**File:** `E:\AnimalKingdomSystem\species.db`  
+**File:** `<data dir>\species.db`  
 **Engine:** SQLite (WAL mode enabled)
 
 ---

@@ -26,9 +26,10 @@ from pathlib import Path
 from typing import NamedTuple
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
+from app.paths import data_path  # noqa: E402
 from app import database
 
-DEFAULT_BACKUP = "E:/AnimalKingdomSystem/common_names_backup.jsonl"
+DEFAULT_BACKUP = str(data_path("common_names_backup.jsonl"))
 
 
 class Fix(NamedTuple):

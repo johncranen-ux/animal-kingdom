@@ -7,9 +7,11 @@ import sqlite3
 from datetime import date
 from typing import Literal, NamedTuple
 
+from app.paths import data_path
+
 log = logging.getLogger(__name__)
 
-DB_PATH = os.environ.get("SPECIES_DB_PATH", r"E:\AnimalKingdomSystem\species.db")
+DB_PATH = os.environ.get("SPECIES_DB_PATH") or str(data_path("species.db"))
 
 _CREATE_SPECIES_TABLE = """
 CREATE TABLE IF NOT EXISTS species (

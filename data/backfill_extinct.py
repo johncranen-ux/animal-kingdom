@@ -27,7 +27,7 @@ Idempotent; re-running only fills what is still NULL.
 
 Usage:
     python data/backfill_extinct.py                       # default backbone path
-    python data/backfill_extinct.py E:/AnimalKingdomSystem/gbif/backbone --dry-run
+    python data/backfill_extinct.py <data dir>/gbif/backbone --dry-run
 """
 
 import argparse
@@ -38,11 +38,12 @@ from pathlib import Path
 from typing import Iterable, Iterator
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
+from app.paths import data_path  # noqa: E402
 from app import database
 
 PBDB_DATASET_ID  = "c33ce2f2-c3cc-43a5-a380-fe4526d63650"
 PBDB_SOURCE      = "GBIF backbone (Paleobiology Database)"
-DEFAULT_BACKBONE = "E:/AnimalKingdomSystem/gbif/backbone"
+DEFAULT_BACKBONE = str(data_path("gbif", "backbone"))
 BATCH = 900   # stays under SQLite's 999 host-parameter limit
 
 # Taxon.tsv column positions (see meta.xml)

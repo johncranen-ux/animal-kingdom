@@ -3,7 +3,7 @@ Compare the animal species in species.db with Catalogue of Life trial databases
 built by import_col.py. Read-only; writes results to a separate output folder.
 
 Usage:
-    python data/compare_col.py [--out E:/AnimalKingdomSystem/col/comparison]
+    python data/compare_col.py [--out <data dir>/col/comparison]
 
 The app's taxon_path skips empty levels, so "Animalia|Chordata|Cypriniformes|..." cannot
 be read by position: GBIF's levels come from the backbone's Taxon.tsv instead. A level
@@ -21,7 +21,8 @@ from collections import Counter, defaultdict, namedtuple
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from import_gbif import _build_taxon_path  # noqa: E402
+from import_gbif import _build_taxon_path  # noqa: E402  (also puts backend/ on sys.path)
+from app.paths import data_path  # noqa: E402
 
 LEVELS = ("phylum", "class", "order", "family")
 ACCEPTED_STATUSES = {"accepted", "provisionally accepted"}
@@ -30,9 +31,9 @@ DATA_FIELDS = ("iucn", "image", "abstract", "traits")
 _EPITHET_ENDING = re.compile(r"(ii|ae|us|um|is|a|e|i)$")
 _SUBGENUS = re.compile(r"\s+\([^)]*\)\s+")
 
-SPECIES_DB = "E:/AnimalKingdomSystem/species_gbif_backup.db"  # the GBIF side; species.db is a COL build since the switch
-TAXON_TSV = "E:/AnimalKingdomSystem/gbif/backbone/Taxon.tsv"
-RELEASES = {"base": "E:/AnimalKingdomSystem/col/col_base.db", "xr": "E:/AnimalKingdomSystem/col/col_xr.db"}
+SPECIES_DB = str(data_path("species_gbif_backup.db"))  # the GBIF side; species.db is a COL build since the switch
+TAXON_TSV = str(data_path("gbif", "backbone", "Taxon.tsv"))
+RELEASES = {"base": str(data_path("col", "col_base.db")), "xr": str(data_path("col", "col_xr.db"))}
 
 GbifRow = namedtuple("GbifRow", "name status levels extinct iucn image abstract traits")
 
@@ -277,7 +278,7 @@ def _summary(out, top=60):
 
 def main():
     parser = argparse.ArgumentParser(description="Compare species.db with COL trial databases")
-    parser.add_argument("--out", default="E:/AnimalKingdomSystem/col/comparison")
+    parser.add_argument("--out", default=str(data_path("col", "comparison")))
     args = parser.parse_args()
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)

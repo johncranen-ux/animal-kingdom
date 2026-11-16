@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 An offline-first app cataloguing ~1.8 million animal species, with taxonomy from Catalogue of Life Extended (COL26.10 XR). Core features: an interactive zoomable D3.js taxonomy tree and a local RAG chatbot backed by Ollama (`llama3.1:8b` by default, `AK_CHAT_MODEL` overrides; AMD GPU, Ollama 0.40.16).
 
-**Data lives on a separate NVMe drive:** `E:\AnimalKingdomSystem\` — SQLite DB and ChromaDB vector store go there, not in the repo.
+**Data lives on a separate NVMe drive:** `E:\AnimalKingdomSystem\` — SQLite DB and ChromaDB vector store go there, not in the repo. Code never names the drive: every path comes from `app.paths.data_path()`, whose folder is `AK_DATA_DIR` (set in the git-ignored `.env` on this machine; default `<repo>/local_data`). `test_paths.py` fails if a drive path reappears.
 
 ## Tech Stack
 

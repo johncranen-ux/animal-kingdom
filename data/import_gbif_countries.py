@@ -4,7 +4,7 @@ Import wild GBIF records per species per country into species_countries.
 The download (one row per GBIF species and country) counts the wild records
 (human or machine observations, DETECTED, with coordinates and no geospatial
 issues) of each animal species per countryCode. Submitted with
-E:/AnimalKingdomSystem/gbif_countries/gbif_countries_download.py on 2026-11-12.
+data/gbif_download.py (countries query) on 2026-11-12.
 
 Names match as in import_gbif_ranges.py: exact primary keys only; a synonym's
 counts go to its accepted species (added to that species' own counts). Extinct
@@ -27,9 +27,10 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
+from app.paths import data_path  # noqa: E402
 from app import database  # noqa: E402
 
-DEFAULT_CSV = "E:/AnimalKingdomSystem/gbif_countries/0003676-261110092616502.csv"
+DEFAULT_CSV = str(data_path("gbif_countries", "0003676-261110092616502.csv"))
 
 
 def read_counts(csv_path: Path) -> dict[str, dict[str, int]]:

@@ -35,10 +35,11 @@ from pathlib import Path
 from typing import Iterable
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
+from app.paths import data_path  # noqa: E402
 from app import database
 
-DEFAULT_BACKBONE = "E:/AnimalKingdomSystem/gbif/backbone"
-DEFAULT_BACKUP   = "E:/AnimalKingdomSystem/name_collisions_backup.jsonl"
+DEFAULT_BACKBONE = str(data_path("gbif", "backbone"))
+DEFAULT_BACKUP   = str(data_path("name_collisions_backup.jsonl"))
 BATCH = 900
 csv.field_size_limit(2_147_483_647)   # VernacularName.tsv has very long fields
 

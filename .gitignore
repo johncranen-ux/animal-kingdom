@@ -40,3 +40,6 @@ Thumbs.db
 .superpowers/
 .claude/
 backend/..uvicorn.log
+
+# Default data folder when AK_DATA_DIR is not set
+local_data/

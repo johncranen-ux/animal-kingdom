@@ -9,7 +9,7 @@ Usage:
     python data/import_gbif.py /path/to/backbone.zip
 
     # Download then import (adds --no-verify-ssl if you have cert issues):
-    python data/import_gbif.py --download [--output-dir E:/AnimalKingdomSystem/gbif] [--no-verify-ssl]
+    python data/import_gbif.py --download [--output-dir <data dir>/gbif] [--no-verify-ssl]
 
 The backbone directory must contain Taxon.tsv (tab-separated).
 VernacularName.tsv is loaded if present for English common names.
@@ -34,6 +34,7 @@ from pathlib import Path
 csv.field_size_limit(min(sys.maxsize, 2_147_483_647))
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
+from app.paths import data_path  # noqa: E402
 from app import database
 
 CHUNK_SIZE = 10_000
@@ -253,8 +254,8 @@ def main() -> None:
     )
     parser.add_argument(
         "--output-dir",
-        default=r"E:\AnimalKingdomSystem\gbif",
-        help="Destination for --download (default: E:/AnimalKingdomSystem/gbif)",
+        default=str(data_path("gbif")),
+        help="Destination for --download (default: <data dir>/gbif)",
     )
     parser.add_argument(
         "--no-verify-ssl",
