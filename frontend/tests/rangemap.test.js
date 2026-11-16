@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { countryName, rangeCaptionHtml, rangeUrl, hasRange, mapBounds, zoomFeatures, drawRangeMap, loadWorld, _resetWorld } from '../js/rangemap.js';
+import * as d3 from 'd3';
+import { countryName, rangeCaptionHtml, rangeUrl, hasRange, mapBounds, zoomFeatures, mapProjection, drawRangeMap, loadWorld, _resetWorld } from '../js/rangemap.js';
 
 const sq = (code, x0, y0, x1, y1) => ({
   type: 'Feature', properties: { code, name: `Land ${code}` },
@@ -70,9 +71,14 @@ describe('mapBounds', () => {
     expect(y1 - y0).toBeGreaterThanOrEqual(25);
     expect(x0).toBeLessThan(70); expect(x1).toBeGreaterThan(90);
   });
-  it('gives the whole world for a range across the 180° line or wider than half the globe', () => {
-    expect(mapBounds([[170, -20], [-170, 10]])).toBeNull();
+  it('keeps a range across the 180° line in one piece', () => {
+    const [[x0], [x1]] = mapBounds([[170, -20], [-170, 10]]);
+    expect(x0).toBeLessThan(170); expect(x1).toBeGreaterThan(190);
+    expect(x1 - x0).toBeLessThan(60);
+  });
+  it('gives the whole world for a range wider than half the globe', () => {
     expect(mapBounds([[-170, -50], [175, 70]])).toBeNull();
+    expect(mapBounds([[95, -11], [-67, 50]])).toBeNull();   // Indonesia to the USA
   });
   it('stays inside the latitudes of the map', () => {
     const [[, y0], [, y1]] = mapBounds([[-60, 60], [-20, 84]]);
@@ -85,6 +91,42 @@ describe('zoomFeatures', () => {
     const ru = sq('RU', 27, 41, 179, 77);
     expect(zoomFeatures([sq('IN', 70, 10, 90, 30), ru]).map(f => f.properties.code)).toEqual(['IN']);
     expect(zoomFeatures([ru])).toEqual([ru]);
+  });
+  it('zooms to the main part of a country spread over the globe', () => {
+    // Mainland USA plus the Aleutians across the 180° line
+    const us = { type: 'Feature', properties: { code: 'US' }, geometry: { type: 'MultiPolygon', coordinates: [
+      sq('US', -125, 25, -67, 49).geometry.coordinates[0],
+      sq('US', 172, 51, 179, 53).geometry.coordinates[0],
+    ] } };
+    const zoom = zoomFeatures([us, sq('ID', 95, -11, 141, 6)]);
+    expect(zoom.length).toBe(2);
+    const [[x0], [x1]] = d3.geoBounds(zoom[0]);
+    expect([Math.round(x0), Math.round(x1)]).toEqual([-125, -67]);
+  });
+  it('keeps a small country across the 180° line', () => {
+    const fj = sq('FJ', 177, -18, 181, -16);
+    expect(zoomFeatures([fj])).toEqual([fj]);
+  });
+});
+
+describe('mapProjection', () => {
+  const inside = (proj, pt, w = 256, h = 150) => {
+    const [x, y] = proj(pt);
+    return x >= 0 && x <= w && y >= 0 && y <= h;
+  };
+  it('shows every native country, also across the Pacific', () => {
+    const world = { type: 'FeatureCollection', features: [
+      sq('US', -125, 25, -67, 49), sq('ID', 95, -11, 141, 6), sq('PH', 117, 5, 127, 19), sq('BR', -70, -30, -40, 0)] };
+    const range = { native: [{ code: 'US', records: 125 }, { code: 'ID', records: 22 }, { code: 'PH', records: 5 }] };
+    const proj = mapProjection(world, range, 256, 150);
+    for (const pt of [[-96, 37], [118, -2], [122, 12]]) expect(inside(proj, pt)).toBe(true);
+  });
+  it('centres a range across the 180° line', () => {
+    const world = { type: 'FeatureCollection', features: [sq('FJ', 177, -18, 181, -16), sq('IN', 70, 10, 90, 30)] };
+    const proj = mapProjection(world, { native: [{ code: 'FJ', records: 3 }] }, 256, 150);
+    const [x] = proj([179, -17]);
+    expect(Math.abs(x - 128)).toBeLessThan(20);
+    expect(inside(proj, [80, 20])).toBe(false);
   });
 });
 

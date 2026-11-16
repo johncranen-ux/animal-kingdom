@@ -1655,6 +1655,15 @@ range map first of the enhancement ideas and left the design to me ("follow your
 - Live (real DB): snow leopard (Central Asia, US outlined), ring-tailed lemur (Madagascar), red fox
   (world, 84 countries), koala (Australia, New Zealand outlined).
 
+**Fix 2026-11-16 (user report: *Phoronopsis californica* showed only Indonesia):** the US
+outline crosses the 180° line (Aleutians), so `zoomFeatures` dropped it as "huge" and the map
+zoomed to Indonesia and the Philippines while the US (125 of 152 records) sat off-screen; NZ
+and Fiji had the same problem. Now a country spread over the globe zooms by its largest part
+(mainland US; Russia's mainland is still too wide and stays out), and `mapProjection` rotates
+the map to the range's centre, so a range across the Pacific stays in one piece (the phoronid
+gets a Pacific-centred world map with all three shaded). 4 new Vitest tests (204 total), E2E
+range map 2/2, live check of phoronid, snow leopard, koala, polar bear, red fox.
+
 ---
 
 ## Future Enhancements

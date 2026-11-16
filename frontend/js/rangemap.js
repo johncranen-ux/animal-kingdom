@@ -49,29 +49,41 @@ export function rangeCaptionHtml(range) {
   return html;
 }
 
-/**
- * [[lon0, lat0], [lon1, lat1]] to show around a range's bounds (d3.geoBounds),
- * padded to a minimum span; null = show the whole world (the range crosses the
- * 180° line or covers more than half the globe).
- */
-export function mapBounds([[lon0, lat0], [lon1, lat1]]) {
-  if (lon0 > lon1 || lon1 - lon0 > 180) return null;
-  const padLon = Math.max((MIN_SPAN_LON - (lon1 - lon0)) / 2, (lon1 - lon0) * 0.15);
-  const padLat = Math.max((MIN_SPAN_LAT - (lat1 - lat0)) / 2, (lat1 - lat0) * 0.15);
-  return [[Math.max(-180, lon0 - padLon), Math.max(-MAX_LAT, lat0 - padLat)],
-          [Math.min(180, lon1 + padLon), Math.min(MAX_LAT, lat1 + padLat)]];
+// A box from d3.geoBounds with its east edge past 180° when it crosses that line
+function _unwrap([[lon0, lat0], [lon1, lat1]]) {
+  return [[lon0, lat0], [lon1 < lon0 ? lon1 + 360 : lon1, lat1]];
 }
 
 /**
- * The countries the map zooms to: huge ones (or ones across the 180° line) would
- * zoom it out to the whole world for a species living in one corner of them, so
- * they are left out unless nothing else is left. They are still shaded.
+ * [[lon0, lat0], [lon1, lat1]] to show around a range's bounds (d3.geoBounds),
+ * padded to a minimum span; a range across the 180° line gets lon1 > 180. null =
+ * show the whole world (the range covers more than half the globe).
+ */
+export function mapBounds(bounds) {
+  const [[lon0, lat0], [lon1, lat1]] = _unwrap(bounds);
+  if (lon1 - lon0 > 180) return null;
+  const padLon = Math.max((MIN_SPAN_LON - (lon1 - lon0)) / 2, (lon1 - lon0) * 0.15);
+  const padLat = Math.max((MIN_SPAN_LAT - (lat1 - lat0)) / 2, (lat1 - lat0) * 0.15);
+  return [[lon0 - padLon, Math.max(-MAX_LAT, lat0 - padLat)],
+          [lon1 + padLon, Math.min(MAX_LAT, lat1 + padLat)]];
+}
+
+const _span = f => { const [[x0], [x1]] = _unwrap(d3.geoBounds(f)); return x1 - x0; };
+
+/**
+ * What the map zooms to per native country: a country spread over the globe (the USA
+ * with Alaska, the Aleutians and Hawaii) would zoom it out to the whole world, so it
+ * counts with its largest part only; one still huge then (Russia) is left out unless
+ * nothing else is left. Every native country is still shaded.
  */
 export function zoomFeatures(features) {
-  const compact = features.filter(f => {
-    const [[x0], [x1]] = d3.geoBounds(f);
-    return x0 <= x1 && x1 - x0 <= HUGE_SPAN_LON;
-  });
+  const compact = [];
+  for (const f of features) {
+    if (_span(f) <= HUGE_SPAN_LON) { compact.push(f); continue; }
+    const parts = f.geometry.coordinates.map(rings => ({ type: 'Polygon', coordinates: rings }));
+    const main = parts.reduce((a, b) => (d3.geoArea(b) > d3.geoArea(a) ? b : a));
+    if (_span(main) <= HUGE_SPAN_LON) compact.push({ ...f, geometry: main });
+  }
   return compact.length ? compact : features;
 }
 
@@ -85,16 +97,28 @@ function _frame([[x0, y0], [x1, y1]]) {
   return { type: 'MultiPoint', coordinates: pts };
 }
 
+/**
+ * The projection: turned so the range sits in the middle (a range across the 180°
+ * line stays in one piece) and fitted to it, or to the whole world.
+ */
+export function mapProjection(world, range, width, height) {
+  const codes = new Set(range.native.map(r => r.code));
+  const nativeFeatures = world.features.filter(f => codes.has(f.properties.code));
+  const raw = nativeFeatures.length
+    ? d3.geoBounds({ type: 'FeatureCollection', features: zoomFeatures(nativeFeatures) })
+    : null;
+  const bounds = raw && mapBounds(raw);
+  const [[x0], [x1]] = bounds || (raw ? _unwrap(raw) : [[0], [0]]);
+  const centre = Number.isFinite(x0 + x1) ? (x0 + x1) / 2 : 0;
+  return d3.geoNaturalEarth1()
+    .rotate([-centre, 0])
+    .fitExtent([[2, 2], [width - 2, height - 2]], bounds ? _frame(bounds) : { type: 'Sphere' });
+}
+
 export function drawRangeMap(el, world, range, { width = 256, height = 150 } = {}) {
   const records = new Map(range.native.map(r => [r.code, r]));
   const strays = new Map((range.elsewhere || []).map(r => [r.code, r]));
-  const nativeFeatures = world.features.filter(f => records.has(f.properties.code));
-
-  const bounds = nativeFeatures.length
-    ? mapBounds(d3.geoBounds({ type: 'FeatureCollection', features: zoomFeatures(nativeFeatures) }))
-    : null;
-  const projection = d3.geoNaturalEarth1()
-    .fitExtent([[2, 2], [width - 2, height - 2]], bounds ? _frame(bounds) : { type: 'Sphere' });
+  const projection = mapProjection(world, range, width, height);
   const path = d3.geoPath(projection);
 
   const max = Math.max(...range.native.map(r => r.records), 1);
