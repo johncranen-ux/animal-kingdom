@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Animal Kingdom</title>
+
+  <!-- D3 v7 ESM — resolved by Vitest via npm, resolved by this map in the browser -->
+  <script type="importmap">
+  {
+    "imports": {
+      "d3": "https://cdn.jsdelivr.net/npm/d3@7/+esm"
+    }
+  }
+  </script>
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="bg-gray-950 text-gray-100 h-screen flex flex-col">
+
+  <header class="px-6 py-3 border-b border-gray-800 flex items-center gap-4">
+    <h1 class="text-lg font-semibold tracking-wide">Animal Kingdom</h1>
+
+    <!-- Search bar -->
+    <div class="relative flex-1 max-w-sm">
+      <input
+        id="search-input"
+        type="search"
+        placeholder="Search species…"
+        autocomplete="off"
+        class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-1.5 text-sm
+               outline-none focus:ring-1 focus:ring-indigo-500 placeholder-gray-400"
+      />
+      <ul
+        id="search-results"
+        class="hidden absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700
+               rounded shadow-lg max-h-64 overflow-y-auto"
+      ></ul>
+    </div>
+
+    <!-- Tree filter: hide fossil taxa (marked † in the tree) -->
+    <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer select-none">
+      <input id="hide-extinct" type="checkbox" class="accent-indigo-500 w-4 h-4" />
+      Hide extinct <span class="text-gray-400">(†)</span>
+    </label>
+  </header>
+
+  <main class="flex flex-1 overflow-hidden">
+
+    <!-- Taxonomy tree panel (scroll container stays here) -->
+    <section id="tree-panel" class="flex-1 overflow-auto relative">
+      <div id="tree-container" class="w-full"></div>
+      <p class="absolute bottom-2 left-3 text-xs text-gray-400 pointer-events-none select-none">
+        Ctrl+scroll to zoom &middot; drag to pan
+      </p>
+    </section>
+
+    <!-- Colour key: fixed, so it stays put while the tree is panned, zoomed or scrolled -->
+    <div id="tree-legend"
+         class="fixed left-3 bottom-8 z-10 bg-gray-900/85 border border-gray-700 rounded-lg
+                px-2.5 py-2 text-xs text-gray-300 pointer-events-none select-none"></div>
+
+    <!-- Chat panel (wired up in Increment 8) -->
+    <aside id="chat-panel" class="w-96 border-l border-gray-800 flex flex-col">
+      <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+      <form id="chat-form" class="p-3 border-t border-gray-800 flex gap-2">
+        <input
+          id="chat-input"
+          type="text"
+          placeholder="Ask about a species…"
+          class="flex-1 bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm outline-none
+                 focus:ring-1 focus:ring-indigo-500 placeholder-gray-400"
+        />
+        <button
+          type="submit"
+          class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded text-sm font-medium"
+        >
+          Send
+        </button>
+      </form>
+    </aside>
+
+  </main>
+
+  <!-- Tree loading spinner — centred over the tree panel area -->
+  <div id="tree-spinner"
+       class="hidden fixed inset-y-14 left-0 right-96 flex items-center justify-center pointer-events-none z-20">
+    <div class="flex items-center gap-2 bg-gray-900/90 backdrop-blur border border-gray-700
+                rounded-full px-4 py-2 text-sm text-gray-300 shadow-lg">
+      <div class="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      Loading…
+    </div>
+  </div>
+
+  <!-- Toast notifications — bottom-right corner -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 items-end"></div>
+
+  <!-- Species detail panel — fixed overlay so it is never clipped by tree scroll -->
+  <div id="species-panel"
+       class="hidden fixed top-14 right-[25rem] w-72 max-h-[80vh]
+              bg-gray-900/95 backdrop-blur border border-gray-700
+              rounded-xl shadow-2xl overflow-hidden flex flex-col z-50">
+    <!-- Header -->
+    <div class="flex items-start justify-between px-4 py-3 border-b border-gray-700 shrink-0">
+      <div class="overflow-hidden">
+        <p id="sp-name"   class="text-sm font-semibold text-white italic truncate"></p>
+        <p id="sp-common" class="text-xs text-gray-300 truncate mt-0.5"></p>
+        <p id="sp-rank"   class="text-xs text-gray-400 mt-0.5"></p>
+      </div>
+      <button id="sp-close"
+              class="ml-2 shrink-0 text-gray-400 hover:text-white text-xl leading-none">
+        &times;
+      </button>
+    </div>
+    <!-- Image -->
+    <div id="sp-image-wrap" class="hidden shrink-0">
+      <div id="sp-image-view">
+        <img id="sp-image" class="w-full object-cover max-h-44" alt="" />
+        <p   id="sp-attr"  class="text-xs text-gray-400 px-2 py-0.5 text-right truncate"></p>
+        <div id="sp-no-image" class="hidden text-xs text-gray-400 px-4 py-2"></div>
+        <div id="sp-picture-tools" class="text-xs px-2 pb-1 text-right"></div>
+      </div>
+      <div id="sp-picture-choice" class="hidden text-xs text-gray-400 px-2 py-2"></div>
+    </div>
+    <!-- Attributes -->
+    <div class="overflow-y-auto flex-1 px-4 py-3">
+      <div id="sp-fields" class="space-y-1.5 text-xs"></div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

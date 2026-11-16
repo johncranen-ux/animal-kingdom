@@ -1,0 +1,29 @@
+.\sqlite3.exe "E:\AnimalKingdomSystem\species.db"    
+
+-- Row count
+    SELECT COUNT(*) FROM species;
+
+    -- Count by status
+    SELECT taxonomic_status, COUNT(*) FROM species GROUP BY taxonomic_status;
+
+    -- Look up a specific species
+    SELECT scientific_name, taxon_rank, taxon_path, common_names, iucn_status
+    FROM species
+    WHERE scientific_name = 'Panthera leo';
+
+    -- Sample 10 random accepted species
+    SELECT scientific_name, taxon_rank, taxon_path
+    FROM species
+    WHERE taxonomic_status = 'ACCEPTED' AND taxon_rank = 'species'
+    ORDER BY RANDOM()
+    LIMIT 10;
+
+    -- Children of Animalia (direct phyla)
+    SELECT scientific_name, taxon_rank, taxon_path
+    FROM species
+    WHERE taxon_path LIKE 'Animalia|%'
+      AND (length(taxon_path) - length(replace(taxon_path, '|', ''))) = 1
+    LIMIT 20;
+
+    -- Exit
+    .quit

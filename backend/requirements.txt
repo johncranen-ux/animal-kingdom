@@ -1,0 +1,31 @@
+# Animal Kingdom — backend dependencies
+# Python 3.12 | 2026-06-06
+
+# Web framework
+fastapi==0.136.3
+uvicorn[standard]==0.49.0
+aiofiles==25.1.0
+pydantic==2.13.4
+
+# LLM orchestration (installed in Increment 6)
+langchain==0.3.25
+langchain-community==0.3.24
+langgraph==0.4.8
+
+# Vector DB (installed in Increment 5)
+chromadb==1.0.9
+
+# Embeddings (installed in Increment 5)
+# NOTE: torch must be installed separately before sentence-transformers.
+# PyTorch ROCm wheels are Linux-only. On this machine (Windows, ROCm 7.1):
+#   CPU-only:  pip install torch --index-url https://download.pytorch.org/whl/cpu
+#   DirectML:  pip install torch-directml
+# Then: pip install sentence-transformers==4.1.0
+sentence-transformers==4.1.0
+
+# Testing
+pytest==9.0.3
+httpx==0.28.1
+
+# Image search
+ddgs==9.14.4

@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Node
+node_modules/
+test-results/
+playwright-report/
+dist/
+.vitest/
+coverage/
+
+# Data (lives on E: drive, not in repo)
+*.db
+*.sqlite
+chroma_db/
+
+# Environment / secrets
+.env
+.env.local
+
+# Service manager
+.pids.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Tool / session artefacts
+.playwright-mcp/
+.superpowers/
+.claude/
+backend/..uvicorn.log

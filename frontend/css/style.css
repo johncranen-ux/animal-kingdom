@@ -1,0 +1,29 @@
+/* Animal Kingdom — global styles (Tailwind handles most; custom overrides here) */
+
+/* Dark native widgets: scrollbars, the search box's clear button, form controls */
+:root { color-scheme: dark; }
+
+/* "est." badge on trait values estimated from the Wikipedia description */
+.trait-est {
+  margin-left: 0.35rem;
+  padding: 0 0.3rem;
+  border: 1px solid #b45309;
+  border-radius: 0.25rem;
+  color: #fbbf24;
+  font-size: 0.65rem;
+  vertical-align: 1px;
+}
+
+/* Chat name links: animals the answer is about open in the tree and the panel */
+.bubble-text a.taxon-link {
+  color: inherit;
+  font-weight: inherit;
+  text-decoration: underline dotted;
+  text-decoration-color: #9ca3af;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.bubble-text a.taxon-link:hover {
+  text-decoration-style: solid;
+  text-decoration-color: currentColor;
+}
