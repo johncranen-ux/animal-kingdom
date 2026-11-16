@@ -16,7 +16,7 @@ Life → domains → kingdoms → phyla → classes → orders → families → 
 
 ### A species panel
 
-Search by scientific, common or old name, and the tree opens along the path to the species. The panel shows its picture (with attribution, and a gallery to choose another one), IUCN Red List status and population trend, habitat, elevation, body mass, length, maximum lifespan, geographic range, lineage and a Wikipedia summary. Traits that aren't in the database yet are looked up on demand from IUCN, GBIF, Wikidata and Wikipedia, and every value records where it came from. Values the local model estimated from the Wikipedia text are marked **est.**
+Search by scientific, common or old name, and the tree opens along the path to the species. The panel shows its picture (with attribution, and a gallery to choose another one), IUCN Red List status and population trend, habitat, elevation, body mass, length, maximum lifespan, a map of the countries it lives in, lineage and a Wikipedia summary. Traits that aren't in the database yet are looked up on demand from IUCN, GBIF, Wikidata and Wikipedia, and every value records where it came from. Values the local model estimated from the Wikipedia text are marked **est.**
 
 ![The species panel for the snow leopard](Docs/images/species-panel.png)
 
@@ -64,7 +64,7 @@ The code is MIT-licensed (see [LICENSE](LICENSE)). **The data is not part of thi
 | **Wikipedia** (English) via the REST API | Species summaries (88,500 species), some pictures; the hover texts of the tree were checked against its articles | CC BY-SA 4.0 |
 | **Wikidata** | Traits and old-name (synonym) links, looked up on demand | CC0 |
 | **Wikimedia Commons**, **iNaturalist**, GBIF occurrence media | Species pictures | Per image; the attribution and licence are stored with each picture and shown in the panel |
-| **Natural Earth** 1:50m | Countries, continents, islands and seas for the chat's "animals of a place" | Public domain |
+| **Natural Earth** 1:50m | Countries, continents, islands and seas for the chat's "animals of a place"; country outlines of the range map | Public domain |
 | **Global Names Verifier** (with WoRMS, ITIS, IRMNG, NCBI and others) | Independent checks of orders and families that COL leaves blank | Per source |
 
 DuckDuckGo image search is the last fallback for a missing picture, through the unofficial [`ddgs`](https://pypi.org/project/ddgs/) library (DuckDuckGo has no public image API, so it may break without notice). Its results carry the source page as attribution.
@@ -124,7 +124,7 @@ The database is built once by the scripts in [`data/`](data/). Every script read
    That gives the full tree from COL alone. The original build also took two optional steps first, and `build_col_db.py` uses their output if it finds it. `import_gbif.py --download` imports the GBIF Backbone as an earlier database (`species_gbif_backup.db`); data collected on it is carried over by name, and names COL lacks stay searchable outside the tree. `verify_col_levels.py` fills orders and families COL leaves blank where independent sources confirm GBIF's value (several hours, resumable; needs the GBIF data). `--old-db none` and `--verdicts none` build without them even when present.
 2. **Tidy-ups after a build.** `backfill_extinct.py --rollup-only` and `fix_common_names.py`.
 3. **Enrichment.** `enrich_iucn.py` (needs the token), `enrich_anage.py`, `enrich_wikipedia.py --animals-only` (about 1.3 s per species, days for all of them), `enrich_images.py`.
-4. **Places.** `build_places.py` (Natural Earth GeoJSON in `<data dir>\natural_earth`). Then request the two GBIF occurrence downloads with `gbif_download.py ranges submit` and `gbif_download.py countries submit` (a free GBIF account; GBIF takes a few hours). Fetch and unzip them, then run `import_gbif_ranges.py --csv …` and `import_gbif_countries.py --csv …`.
+4. **Places.** `build_places.py` (Natural Earth GeoJSON in `<data dir>\natural_earth`); `build_world_map.py` rebuilds the range map's country outlines (`frontend/data/world.json`, already in the repository). Then request the two GBIF occurrence downloads with `gbif_download.py ranges submit` and `gbif_download.py countries submit` (a free GBIF account; GBIF takes a few hours). Fetch and unzip them, then run `import_gbif_ranges.py --csv …` and `import_gbif_countries.py --csv …`.
 5. **Semantic index.** `build_embeddings.py` embeds the Wikipedia summaries into ChromaDB. Its first run downloads the `all-MiniLM-L6-v2` model from Hugging Face (~90 MB); after that the app loads it offline.
 
 The app works with a partly enriched database: missing traits and pictures are fetched on demand when you open a species.

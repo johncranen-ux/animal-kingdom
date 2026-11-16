@@ -21,6 +21,7 @@ One-off scripts that build and maintain the SQLite database and the ChromaDB sto
 | `import_gbif_ranges.py` | Ranges from a GBIF SQL occurrence download |
 | `import_gbif_countries.py` | Wild records per species per country from a GBIF SQL download |
 | `build_places.py` | Natural Earth places for the chat's "animals of a place" |
+| `build_world_map.py` | Simplified Natural Earth country outlines for the panel's range map (`frontend/data/world.json`, ~360 KB) |
 | `build_embeddings.py` | Embed the Wikipedia summaries into ChromaDB |
 | `validate_import.py` | Row counts and required fields |
 | `chat_eval.py` | Live chat check with a tool trace; `--suite` scores a model |

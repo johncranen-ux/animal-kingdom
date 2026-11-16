@@ -10,7 +10,7 @@ from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from app import database, image_utils, trait_utils
+from app import database, image_utils, places, taxon_queries, trait_utils
 from app.llm_agent import stream_response
 
 app = FastAPI(title="Animal Kingdom API")
@@ -119,6 +119,17 @@ class ImageCandidate(BaseModel):
 class ImageCandidatesResponse(BaseModel):
     candidates: list[ImageCandidate]
     unavailable: bool   # a source didn't answer, so the list may be short
+
+
+class RangeCountry(BaseModel):
+    code: str       # ISO 3166 alpha-2, as GBIF records it
+    name: str
+    records: int    # wild GBIF records
+
+
+class RangeResponse(BaseModel):
+    native: list[RangeCountry]      # where the species lives (places.split_countries)
+    elsewhere: list[RangeCountry]   # zoos and misplaced records
 
 
 class ImageChoice(BaseModel):
@@ -631,6 +642,17 @@ def choose_species_image(scientific_name: str, choice: ImageChoice):
         raise HTTPException(status_code=404, detail="Species not found")
     database.choose_species_image(scientific_name, choice.url, choice.attribution)
     return ImageResponse(url=choice.url, attribution=choice.attribution)
+
+
+@app.get("/api/species/{scientific_name}/range", response_model=RangeResponse)
+def species_range(scientific_name: str):
+    """Countries with wild GBIF records for the panel's range map, split into the
+    native range and the strays."""
+    if database.get_species(scientific_name) is None:
+        raise HTTPException(status_code=404, detail="Species not found")
+    inside, outside = places.split_countries(taxon_queries.countries_of(scientific_name))
+    as_rows = lambda rows: [RangeCountry(code=c, name=n, records=r) for c, n, r in rows]  # noqa: E731
+    return RangeResponse(native=as_rows(inside), elsewhere=as_rows(outside))
 
 
 @app.get("/api/species/{scientific_name}", response_model=SpeciesRecord)

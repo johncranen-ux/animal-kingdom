@@ -95,9 +95,11 @@ function _displayValue(sp, field) {
   return v == null || v === '' ? null : formatTraitValue(v);
 }
 
-export function traitRowsHtml(sp, provenance = {}) {
+// hide: fields shown another way (the range box once the range map is up)
+export function traitRowsHtml(sp, provenance = {}, hide = []) {
   provenance = provenance || {};
   return TRAIT_ROWS.map(([label, field]) => {
+    if (hide.includes(field)) return '';
     const val = _displayValue(sp, field);
     if (val == null || val === '') return '';
     const prov  = provenance[field];

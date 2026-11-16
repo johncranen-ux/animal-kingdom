@@ -314,3 +314,18 @@ def test_country_by_code_ignores_continents(tmp_path, monkeypatch):
         assert places.country_by_code("BR") is None
     finally:
         places._load.cache_clear(); places._by_code.cache_clear()
+
+
+# ── Increment 34: the panel's range map ──────────────────────────────────────
+
+def test_split_countries_keeps_codes_names_and_records(map_file):
+    inside, outside = places.split_countries([("AA", 900), ("DD", 6), ("CC", 3), ("BB", 2)])
+    assert inside == [("AA", "Land AA", 900), ("CC", "Land CC", 3), ("BB", "Land BB", 2)]
+    assert outside == [("DD", "Land DD", 6)]
+
+
+def test_split_countries_unknown_code_goes_elsewhere_by_code(map_file):
+    inside, outside = places.split_countries([("AA", 50), ("ZZ", 9)])
+    assert inside == [("AA", "Land AA", 50)]
+    assert outside == [("ZZ", "ZZ", 9)]
+    assert places.split_countries([]) == ([], [])

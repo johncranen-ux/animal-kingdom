@@ -21,6 +21,14 @@ afterEach(() => { vi.useRealTimers(); document.body.innerHTML = ''; });
 // ── Rendering ─────────────────────────────────────────────────────────────────
 
 describe('traitRowsHtml', () => {
+  it('leaves out hidden fields', () => {
+    const sp = { body_mass: 50, geo_bounding_box: { lat_min: 1, lat_max: 2, lon_min: 3, lon_max: 4 } };
+    expect(traitRowsHtml(sp, {})).toContain('lat 1');
+    const html = traitRowsHtml(sp, {}, ['geo_bounding_box']);
+    expect(html).not.toContain('Range');
+    expect(html).toContain('50');
+  });
+
   it('escapes untrusted values', () => {
     const html = traitRowsHtml({ habitat_type: '<img src=x onerror=alert(1)>' }, {});
     expect(html).toContain('&lt;img');

@@ -1021,3 +1021,34 @@ def test_image_route_skips_the_failed_picture_without_rejecting_it(monkeypatch):
     assert seen["exclude"] == {"https://w/snake.jpg", "https://w/dead.jpg"}
     row = database.get_species("Oreamnos americanus")
     assert database.parse_rejected_images(row["rejected_images"]) == ["https://w/snake.jpg"]
+
+
+# ── Increment 34: range map data ─────────────────────────────────────────────
+
+def _countries(name, *pairs):
+    conn = database.get_connection()
+    conn.executemany("INSERT INTO species_countries (country, scientific_name, records) VALUES (?, ?, ?)",
+                     [(c, name, n) for c, n in pairs])
+    conn.commit()
+    conn.close()
+
+
+def test_range_route_splits_native_and_elsewhere():
+    # Real places.json: India, China, Mongolia, Nepal hold the snow leopard; 6 US records are strays
+    _insert("Panthera uncia", "Animalia|Panthera uncia")
+    _countries("Panthera uncia", ("IN", 97), ("CN", 59), ("MN", 45), ("NP", 10), ("US", 6))
+    resp = client.get("/api/species/Panthera%20uncia/range")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert [c["code"] for c in body["native"]] == ["IN", "CN", "MN", "NP"]
+    assert body["native"][0] == {"code": "IN", "name": "India", "records": 97}
+    assert body["elsewhere"] == [{"code": "US", "name": "United States of America", "records": 6}]
+
+
+def test_range_route_empty_without_records():
+    _insert("Panthera onca", "Animalia|Panthera onca")
+    assert client.get("/api/species/Panthera%20onca/range").json() == {"native": [], "elsewhere": []}
+
+
+def test_range_route_unknown_species():
+    assert client.get("/api/species/Nope%20nope/range").status_code == 404

@@ -1,5 +1,6 @@
 import { initTree, renderLegend, searchSpecies, highlightNodes, expandToNode, openDomain, clearSelection, getPathToNode, setHideExtinct, setNodeExtinct, refreshAncestorFlags } from './visualizer.js';
 import { escapeHtml, traitRowsHtml, nextTraitStage, panelShows, loadTraits, searchResultLabel, rankLine, currentNameHtml } from './traits.js';
+import { rangeUrl, hasRange, rangeCaptionHtml, drawRangeMap, loadWorld } from './rangemap.js';
 import { chatRequestBody, rememberTurn, linkNames, taxonItem } from './chat.js';
 import {
   noPictureHtml, searchedAgainDate, retryPicture,
@@ -259,8 +260,34 @@ function _showSpeciesPanel(sp) {
     _fetchRemoteImage(sp.scientific_name, false);
   }
 
+  _rangeEl = null;
   _renderSpeciesFields(sp, !!nextTraitStage(sp));
   if (nextTraitStage(sp)) _loadTraits(sp);
+  _loadRange(sp);
+}
+
+// The range map (Increment 34) lives in its own element, so re-rendering the
+// fields as traits arrive moves it instead of drawing it again
+let _rangeEl = null;
+
+async function _loadRange(sp) {
+  const name = sp.scientific_name;
+  let range, world;
+  try {
+    const resp = await fetch(rangeUrl(API, name));
+    range = resp.ok ? await resp.json() : null;
+    world = hasRange(range) ? await loadWorld(API) : null;
+  } catch {
+    return;
+  }
+  if (!world || !panelShows(name) || _panelSp?.scientific_name !== name) return;
+  const el = document.createElement('div');
+  el.id = 'sp-range';
+  el.className = 'mt-2 pt-2 border-t border-gray-700';
+  drawRangeMap(el, world, range);
+  el.insertAdjacentHTML('beforeend', `<div class="mt-1">${rangeCaptionHtml(range)}</div>`);
+  _rangeEl = el;
+  _renderSpeciesFields(_panelSp, !!document.getElementById('sp-traits-loading'));
 }
 
 function _renderSpeciesFields(sp, loading) {
@@ -281,8 +308,9 @@ function _renderSpeciesFields(sp, loading) {
 
   document.getElementById('sp-fields').innerHTML = [
     currentNameHtml(sp),
-    traitRowsHtml(sp, sp.provenance),
+    traitRowsHtml(sp, sp.provenance, _rangeEl ? ['geo_bounding_box'] : []),
     lineageRow,
+    _rangeEl ? '<div id="sp-range-slot"></div>' : '',
     loading ? '<p id="sp-traits-loading" class="text-gray-400 italic">Looking up traits…</p>' : '',
     sp.wikipedia_abstract
       ? `<p class="mt-2 pt-2 border-t border-gray-700 text-gray-300 leading-relaxed">
@@ -290,6 +318,7 @@ function _renderSpeciesFields(sp, loading) {
          </p>`
       : '',
   ].join('');
+  document.getElementById('sp-range-slot')?.replaceWith(_rangeEl);
 }
 
 // Fetch missing traits after the panel opens (like _fetchRemoteImage for images)

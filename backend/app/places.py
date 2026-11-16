@@ -145,9 +145,27 @@ def _near(a: Place, b: Place, k: int = NEIGHBOUR_CELLS) -> bool:
 def native_countries(records: list[tuple[str, int]]) -> tuple[list[tuple[str, int]], int]:
     """(country name, records) of the countries the species lives in, in the given
     order, and how many other countries have records of it."""
+    inside, outside = split_countries(records)
+    return [(name, n) for _, name, n in inside], len(outside)
+
+
+def split_countries(records: list[tuple[str, int]]
+                    ) -> tuple[list[tuple[str, str, int]], list[tuple[str, str, int]]]:
+    """(code, name, records) of the countries the species lives in and of the other
+    countries with records (zoos, misplaced records), both in the given order. A code
+    with no place keeps the code as its name and counts as elsewhere."""
+    kept = _native_codes(records)
+    inside, outside = [], []
+    for code, n in records:
+        place = country_by_code(code)
+        (inside if code in kept else outside).append((code, place.name if place else code, n))
+    return inside, outside
+
+
+def _native_codes(records: list[tuple[str, int]]) -> set[str]:
     known = [(code, n, place) for code, n in records if (place := country_by_code(code))]
     if not known:
-        return [], len(records)
+        return set()
     total = sum(n for _, n, _ in known)
     top = max(n for _, n, _ in known)
     kept = {code for code, n, _ in known
@@ -160,5 +178,4 @@ def native_countries(records: list[tuple[str, int]]) -> tuple[list[tuple[str, in
                     and _near(other, place)):
                 kept.add(code)
                 todo.append((code, other))
-    inside = [(p.name, n) for code, n, p in known if code in kept]
-    return inside, len(records) - len(inside)
+    return kept

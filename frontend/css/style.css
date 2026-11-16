@@ -27,3 +27,11 @@
   text-decoration-style: solid;
   text-decoration-color: currentColor;
 }
+
+/* Species panel range map (Increment 34) */
+.range-map { display: block; }
+.range-sea { fill: #0b1220; stroke: #1f2937; stroke-width: 0.5; }
+.range-land { fill: #374151; stroke: #1f2937; stroke-width: 0.3; }
+.range-stray { fill: #374151; stroke: #f59e0b; stroke-width: 0.8; stroke-dasharray: 2 1.5; }
+.range-native { stroke: #0f172a; stroke-width: 0.3; }
+.range-native:hover, .range-stray:hover { stroke: #fff; stroke-width: 0.8; }

@@ -1618,6 +1618,45 @@ rejecting it for good.
 
 ---
 
+## Increment 34 — Range Map in the Species Panel ✅
+
+Approved and merged to master 2026-11-16. Built the same day on branch `increment-34-range-map`. The user asked for the
+range map first of the enhancement ideas and left the design to me ("follow your instinct").
+
+### Decisions
+- **Native countries shaded, strays outlined, no range box.** The range box is stretched by stray
+  records (snow leopard: 6 US records put its western edge at −122°), so once the map shows, the panel's
+  Range row is hidden. Native vs stray is `places.split_countries`, the same split the chat's
+  `lookup_species` has used since Increment 27 (`native_countries` now wraps it).
+- **Offline outlines:** `data/build_world_map.py` simplifies Natural Earth 1:50m map units
+  (Douglas-Peucker 0.08°, 2 decimals, d3 winding) to `frontend/data/world.json`, 360 KB, committed
+  (public domain). Gibraltar, Bouvet Island and the US Minor Outlying Islands aren't in 1:50m: listed
+  in the caption, not drawn. A code with no name in `places.json` is named by the browser
+  (`Intl.DisplayNames`).
+- **Zoom:** fit to the native countries, padded to at least 40° × 25°; countries wider than 100° of
+  longitude (Russia, USA, Canada) are left out of the fit unless they are the whole range, else Russia
+  would zoom every Asian species out to the world. A range across the 180° line or wider than half
+  the globe gets the world map.
+- Shading: log scale by records, dark to light teal; hover gives "India: 97 wild records".
+
+### Built
+- `GET /api/species/{name}/range` → `{native: [{code, name, records}], elsewhere: [...]}`; 404 for
+  an unknown name.
+- `frontend/js/rangemap.js` (caption, bounds, drawing, outlines fetched once per page); `app.js` keeps
+  the map in its own element, so trait updates move it instead of redrawing it, and a stale response
+  for the previous animal is dropped.
+- `traitRowsHtml(sp, provenance, hide)`.
+
+### Checks
+- Backend 892 passed (8 for the outline build, 2 for the split, 3 for the route). Vitest 199 (15 new).
+  E2E `range_map.spec.ts` (2 new); the full suite passed 56/56 with one worker. A parallel run had 14
+  first-started tests time out at ~30 s, the known startup stall. A plain `uvicorn` test server died
+  on WinError 64 mid-run: use the Playwright-started one (`SelectorEventLoop`).
+- Live (real DB): snow leopard (Central Asia, US outlined), ring-tailed lemur (Madagascar), red fox
+  (world, 84 countries), koala (Australia, New Zealand outlined).
+
+---
+
 ## Future Enhancements
 
 Saved for later at the user's request; not scheduled.
