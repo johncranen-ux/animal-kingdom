@@ -8,7 +8,7 @@ One-off scripts that build and maintain the SQLite database and the ChromaDB sto
 | `import_col.py` | Load a Catalogue of Life ColDP release into its own SQLite database |
 | `compare_col.py` | Compare a COL release with the GBIF tree (needs the GBIF backbone) |
 | `verify_col_levels.py` | Check orders and families COL leaves blank against independent sources (Global Names) |
-| `build_col_db.py` | Build the app's `species` table from COL, carrying over collected data; never overwrites |
+| `build_col_db.py` | Build the app's `species` table from COL; carries over data from an earlier database and applies verified fixes when those files exist (`--old-db`, `--verdicts`, `none` to skip); never overwrites |
 | `backfill_extinct.py` | Extinct flags: fossil species and all-extinct groups (`--rollup-only` after a COL build) |
 | `fix_common_names.py` | Reviewed tree labels for phyla, classes and orders |
 | `fix_name_collisions.py`, `batch_extinct_gbif.py` | GBIF-era one-offs, kept for the record |

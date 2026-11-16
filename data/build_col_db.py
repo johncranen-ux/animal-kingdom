@@ -4,7 +4,12 @@ carrying across what the current species.db has collected. Writes a new file; re
 target that exists, so species.db is never touched.
 
 Usage:
-    python data/build_col_db.py [--target <data dir>/col/species_col.db]
+    python data/build_col_db.py [--target <data dir>/col/species_col.db] [--col-db P]
+                                [--old-db P|none] [--verdicts P|none]
+
+The earlier species database and the verification verdicts are optional. Without the
+first, nothing is carried over and there are no GBIF_ONLY rows; without the second, no
+fixes are applied. Each defaults to its usual file in the data folder when that exists.
 
 Levels: kingdom, phylum, class, order, family, genus, species and below. Where one of
 those is missing, the lowest level COL has in that gap stands in for it, under its real
@@ -206,8 +211,29 @@ def merge_common_names(old_names, col_names):
     return merged
 
 
+def optional_input(given, default, label):
+    """Path of an optional input file, or None to build without it.
+
+    given: the command-line value (None when not given; "none" turns the input off).
+    A missing default is skipped with a note; a missing file named on the command
+    line stops the build, since that is most likely a typo.
+    """
+    if given is not None:
+        if given.lower() == "none":
+            return None
+        if not os.path.exists(given):
+            sys.exit(f"ERROR: {label} not found: {given}")
+        return given
+    if os.path.exists(default):
+        return default
+    print(f"  No {label} at {default}; building without it.")
+    return None
+
+
 def load_fixes(verdicts_path):
     fixes = Fixes({}, {})
+    if verdicts_path is None:
+        return fixes
     with open(verdicts_path, encoding="utf-8", newline="\n") as f:
         next(f)
         for line in f:
@@ -397,8 +423,11 @@ def build(col_db, old_db, target, fixes, progress=lambda *_: None):
         english[taxon_id].append(name)
     col.close()
 
-    progress("reading the old database")
-    old_rows = _load_old(old_db)
+    # Without the old database the tree is COL's alone: nothing carried over, no GBIF_ONLY rows.
+    old_rows = {}
+    if old_db is not None:
+        progress("reading the old database")
+        old_rows = _load_old(old_db)
 
     accepted = [r for r in best.values() if r["status"] == "ACCEPTED"] + losers
     used_paths = {prefix for row in accepted if row["path"] for prefix in _prefixes(row["path"])}
@@ -504,14 +533,23 @@ def build(col_db, old_db, target, fixes, progress=lambda *_: None):
 def main():
     parser = argparse.ArgumentParser(description="Build species table from COL Extended")
     parser.add_argument("--target", default=TARGET)
+    parser.add_argument("--col-db", default=COL_DB, help="COL database made by import_col.py")
+    parser.add_argument("--old-db", help=f"earlier species database to carry data from (default {OLD_DB} "
+                                         "if it exists; 'none' to build without)")
+    parser.add_argument("--verdicts", help=f"verify_col_levels.py verdicts (default {VERDICTS} "
+                                           "if it exists; 'none' to build without)")
     args = parser.parse_args()
     t0 = time.monotonic()
 
     def progress(text):
         print(f"  [{time.monotonic() - t0:6.0f} s] {text}", flush=True)
 
+    if not os.path.exists(args.col_db):
+        sys.exit(f"ERROR: COL database not found: {args.col_db} (make it with data/import_col.py)")
+    old_db = optional_input(args.old_db, OLD_DB, "earlier species database")
+    verdicts = optional_input(args.verdicts, VERDICTS, "verification verdicts")
     try:
-        summary = build(COL_DB, OLD_DB, args.target, load_fixes(VERDICTS), progress)
+        summary = build(args.col_db, old_db, args.target, load_fixes(verdicts), progress)
     except FileExistsError as exc:
         sys.exit(f"ERROR: {exc}")
     print(f"Finished in {time.monotonic() - t0:,.0f} s")

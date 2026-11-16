@@ -46,7 +46,7 @@ npx playwright test e2e/taxonomy_tree.spec.ts   # single spec
 
 # Data pipeline (from project root; one-off, resumable)
 .venv\Scripts\python data\verify_col_levels.py         # blank orders/families vs independent sources, via Global Names; resumable
-.venv\Scripts\python data\build_col_db.py [--target F] # ~6 min; COL trial DB + species_gbif_backup.db -> new species table; never overwrites. Then run the roll-up and fix_common_names on it (SPECIES_DB_PATH), and carry panel data written since the last build
+.venv\Scripts\python data\build_col_db.py [--target F] [--old-db P|none] [--verdicts P|none] # ~6 min; COL trial DB + species_gbif_backup.db (optional: carried data, GBIF_ONLY rows) + verdicts (optional) -> new species table; never overwrites. Then run the roll-up and fix_common_names on it (SPECIES_DB_PATH), and carry panel data written since the last build
 .venv\Scripts\python data\build_embeddings.py          # ~45 s for ~7k abstracts
 .venv\Scripts\python data\chat_eval.py [--chat] ["question" ...]  # live chat check with a tool trace; --chat = one conversation; needs Ollama, not the backend
 .venv\Scripts\python data\chat_eval.py --suite --model M   # scored model comparison (tool choice, empty answers, label corrections, times); `ollama stop` other models first

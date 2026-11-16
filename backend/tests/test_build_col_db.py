@@ -274,8 +274,7 @@ USAGES = [
 ]
 
 
-@pytest.fixture
-def built(tmp_path):
+def _make_col(tmp_path):
     col = sqlite3.connect(tmp_path / "col.db")
     col.executescript(import_col.SCHEMA)
     col.executemany(
@@ -285,6 +284,11 @@ def built(tmp_path):
     col.execute("INSERT INTO vernacular (taxon_id, name, language) VALUES ('S1', 'lion', 'eng'), ('S1', 'leeuw', 'nld')")
     col.commit()
     col.close()
+
+
+@pytest.fixture
+def built(tmp_path):
+    _make_col(tmp_path)
 
     old = sqlite3.connect(tmp_path / "old.db")
     old.executescript("""CREATE TABLE species (scientific_name TEXT PRIMARY KEY, taxon_path TEXT, taxon_rank TEXT,
@@ -538,3 +542,49 @@ def test_a_rebuild_carries_the_pictures_the_user_rejected():
     assert "rejected_images" in bc._CARRIED and "rejected_images" in bc._COLUMNS
     assert bc._old_row_fields({"rejected_images": '["https://w/snake.jpg"]'}) == \
         {"rejected_images": '["https://w/snake.jpg"]'}
+
+
+# ── Building without the GBIF-era database or the verification verdicts ───────
+
+def test_build_without_old_database_gives_the_col_tree(tmp_path):
+    _make_col(tmp_path)
+    target = tmp_path / "new.db"
+    summary = bc.build(str(tmp_path / "col.db"), None, str(target), bc.Fixes({}, {}))
+    conn = sqlite3.connect(target)
+    conn.row_factory = sqlite3.Row
+    try:
+        lion = _row(conn, "Panthera leo")
+        assert lion["taxon_path"] == "Animalia|Chordata|Mammalia|Carnivora|Felidae|Panthera|Panthera leo"
+        assert json.loads(lion["common_names"]) == ["lion"]
+        assert lion["iucn_status"] is None and lion["primary_image_url"] is None
+        gbif_only = conn.execute("SELECT count(*) FROM species WHERE taxonomic_status = 'GBIF_ONLY'").fetchone()[0]
+        assert gbif_only == 0
+        assert summary["gbif_only_kept"] == 0
+    finally:
+        conn.close()
+
+
+def test_no_verdicts_means_no_fixes():
+    assert bc.load_fixes(None) == bc.Fixes({}, {})
+
+
+def test_optional_input_uses_the_default_file_when_it_exists(tmp_path):
+    present = tmp_path / "old.db"
+    present.write_text("x")
+    assert bc.optional_input(None, str(present), "old database") == str(present)
+
+
+def test_optional_input_skips_a_missing_default_with_a_note(tmp_path, capsys):
+    assert bc.optional_input(None, str(tmp_path / "missing.db"), "old database") is None
+    assert "old database" in capsys.readouterr().out
+
+
+def test_optional_input_refuses_a_missing_file_named_on_the_command_line(tmp_path):
+    with pytest.raises(SystemExit):
+        bc.optional_input(str(tmp_path / "typo.db"), "unused", "old database")
+
+
+def test_optional_input_none_turns_it_off(tmp_path):
+    present = tmp_path / "old.db"
+    present.write_text("x")
+    assert bc.optional_input("none", str(present), "old database") is None

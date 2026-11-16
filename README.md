@@ -114,7 +114,12 @@ Settings come from environment variables or a `.env` file in the project root (`
 
 The database is built once by the scripts in [`data/`](data/). Every script reads and writes inside the data folder (`AK_DATA_DIR`), and most of them resume from a checkpoint if interrupted. The order in which the database was built:
 
-1. **Taxonomy.** `import_gbif.py --download` imports the GBIF Backbone. `import_col.py` loads the Catalogue of Life ColDP archive into its own database. `verify_col_levels.py` checks blank orders and families against independent sources (resumable, several hours). `build_col_db.py` builds the final `species` table, carrying over what the GBIF database collected.
+1. **Taxonomy.** Download the Catalogue of Life Extended release as ColDP from [ChecklistBank](https://www.checklistbank.org/dataset/316691), then:
+   ```bash
+   python data/import_col.py <data dir>\col\col_xr_full_coldp.zip <data dir>\col\col_xr.db
+   python data/build_col_db.py --target <data dir>\species.db
+   ```
+   That gives the full tree from COL alone. The original build also took two optional steps first, and `build_col_db.py` uses their output if it finds it. `import_gbif.py --download` imports the GBIF Backbone as an earlier database (`species_gbif_backup.db`); data collected on it is carried over by name, and names COL lacks stay searchable outside the tree. `verify_col_levels.py` fills orders and families COL leaves blank where independent sources confirm GBIF's value (several hours, resumable; needs the GBIF data). `--old-db none` and `--verdicts none` build without them even when present.
 2. **Tidy-ups after a build.** `backfill_extinct.py --rollup-only` and `fix_common_names.py`.
 3. **Enrichment.** `enrich_iucn.py` (needs the token), `enrich_anage.py`, `enrich_wikipedia.py --animals-only` (about 1.3 s per species, days for all of them), `enrich_images.py`.
 4. **Places.** `build_places.py` (Natural Earth GeoJSON in `<data dir>\natural_earth`). Then request the two GBIF occurrence downloads with `gbif_download.py ranges submit` and `gbif_download.py countries submit` (a free GBIF account; GBIF takes a few hours). Fetch and unzip them, then run `import_gbif_ranges.py --csv …` and `import_gbif_countries.py --csv …`.
